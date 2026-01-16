@@ -9,19 +9,17 @@ jobs:
     timeout-minutes: 360
 
     steps:
-      - name: Atualizar sistema
+      - name: Update
         run: sudo apt update
 
-      - name: Instalar Tailscale
-        run: |
-          curl -fsSL https://tailscale.com/install.sh | sh
+      - name: Install Tailscale
+        run: curl -fsSL https://tailscale.com/install.sh | sh
 
-      - name: Subir Tailscale
-        run: |
-          sudo tailscale up --authkey=${{ secrets.TS_AUTHKEY }} --hostname=github-cloud-pc
+      - name: Start Tailscale
+        run: sudo tailscale up --authkey=${{ secrets.TS_AUTHKEY }} --hostname=github-cloud-pc
 
-      - name: Mostrar IP
+      - name: Show IP
         run: tailscale ip -4
 
-      - name: Manter ligado
+      - name: Keep alive
         run: sleep 21600
