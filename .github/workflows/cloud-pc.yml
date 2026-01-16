@@ -1,0 +1,60 @@
+name: Cloud PC Desktop Full
+
+on:
+  workflow_dispatch:
+
+jobs:
+  cloudpc:
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+
+    steps:
+    - name: Update system
+      run: |
+        sudo apt update
+        sudo apt upgrade -y
+
+    - name: Install desktop environment
+      run: |
+        sudo apt install -y xfce4 xfce4-goodies dbus-x11 x11-xserver-utils
+
+    - name: Install VNC server
+      run: |
+        sudo apt install -y tightvncserver
+
+    - name: Setup VNC password
+      run: |
+        mkdir -p ~/.vnc
+        echo -e "123456\n123456\nn" | vncserver
+        vncserver -kill :1
+
+    - name: Configure VNC startup
+      run: |
+        echo '#!/bin/sh
+        unset SESSION_MANAGER
+        unset DBUS_SESSION_BUS_ADDRESS
+        exec startxfce4 &' > ~/.vnc/xstartup
+        chmod +x ~/.vnc/xstartup
+
+    - name: Start VNC server
+      run: |
+        vncserver :1 -geometry 1280x720 -depth 24
+
+    - name: Install Tailscale
+      run: |
+        curl -fsSL https://tailscale.com/install.sh | sh
+
+    - name: Start Tailscale
+      env:
+        TS_AUTHKEY: ${{ secrets.TS_AUTHKEY }}
+      run: |
+        sudo tailscale up --authkey=$TS_AUTHKEY --hostname=github-cloud-pc
+
+    - name: Show Tailscale IP
+      run: |
+        tailscale ip -4
+
+    - name: Keep Cloud PC alive
+      run: |
+        echo "Cloud PC is running..."
+        sleep 216
