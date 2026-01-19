@@ -1,0 +1,49 @@
+name: Cloud PC Full (Browser)
+
+on:
+  workflow_dispatch:
+
+jobs:
+  cloudpc:
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+
+    steps:
+    - name: Update system
+      run: |
+        sudo apt update && sudo apt upgrade -y
+
+    - name: Install desktop environment
+      run: |
+        sudo apt install -y \
+          xfce4 xfce4-goodies \
+          dbus-x11 x11-xserver-utils \
+          novnc websockify \
+          firefox \
+          chromium-browser
+
+    - name: Create VNC password
+      run: |
+        mkdir -p ~/.vnc
+        echo "cloudpc" | vncpasswd -f > ~/.vnc/passwd
+        chmod 600 ~/.vnc/passwd
+
+    - name: Start VNC server
+      run: |
+        vncserver :1 -geometry 1280x720 -depth 24
+
+    - name: Start noVNC
+      run: |
+        websockify --web=/usr/share/novnc/ 6080 localhost:5901 &
+
+    - name: Show access info
+      run: |
+        echo "================================="
+        echo "CLOUD PC ONLINE"
+        echo "Senha VNC: cloudpc"
+        echo "Acesse pela aba 'Ports' ou 'Web Preview'"
+        echo "================================="
+
+    - name: Keep alive
+      run: |
+        sleep 6h
