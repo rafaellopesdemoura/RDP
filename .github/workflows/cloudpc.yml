@@ -1,4 +1,4 @@
-name: Cloud PC Full (Browser)
+name: Cloud PC Full XFCE
 
 on:
   workflow_dispatch:
@@ -13,14 +13,15 @@ jobs:
       run: |
         sudo apt update && sudo apt upgrade -y
 
-    - name: Install desktop environment
+    - name: Install desktop environment + VNC
       run: |
         sudo apt install -y \
           xfce4 xfce4-goodies \
           dbus-x11 x11-xserver-utils \
+          tigervnc-standalone-server \
+          tigervnc-common \
           novnc websockify \
-          firefox \
-          chromium-browser
+          firefox
 
     - name: Create VNC password
       run: |
@@ -28,21 +29,30 @@ jobs:
         echo "cloudpc" | vncpasswd -f > ~/.vnc/passwd
         chmod 600 ~/.vnc/passwd
 
+    - name: Configure VNC startup
+      run: |
+        echo '#!/bin/sh
+        unset SESSION_MANAGER
+        unset DBUS_SESSION_BUS_ADDRESS
+        exec startxfce4 &' > ~/.vnc/xstartup
+        chmod +x ~/.vnc/xstartup
+
     - name: Start VNC server
       run: |
-        vncserver :1 -geometry 1280x720 -depth 24
+        vncserver -localhost no :1 -geometry 1280x720 -depth 24
 
-    - name: Start noVNC
+    - name: Start noVNC (browser access)
       run: |
         websockify --web=/usr/share/novnc/ 6080 localhost:5901 &
 
-    - name: Show access info
+    - name: Info
       run: |
-        echo "================================="
-        echo "CLOUD PC ONLINE"
-        echo "Senha VNC: cloudpc"
-        echo "Acesse pela aba 'Ports' ou 'Web Preview'"
-        echo "================================="
+        echo "=================================="
+        echo "Cloud PC ONLINE"
+        echo "VNC password: cloudpc"
+        echo "Browser: port 6080"
+        echo "VNC: port 5901"
+        echo "=================================="
 
     - name: Keep alive
       run: |
