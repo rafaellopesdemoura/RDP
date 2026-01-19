@@ -1,0 +1,129 @@
+name: Cloud PC Desktop Full
+
+on:
+  workflow_dispatch:
+
+jobs:
+  cloud-pc:
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+
+    steps:
+    # ===============================
+    # ATUALIZAÇÃO DO SISTEMA
+    # ===============================
+    - name: Update system
+      run: |
+        sudo apt update
+        sudo apt upgrade -y
+
+    # ===============================
+    # INSTALAR DEPENDÊNCIAS BÁSICAS
+    # ===============================
+    - name: Install base packages
+      run: |
+        sudo apt install -y \
+        sudo \
+        wget \
+        curl \
+        git \
+        nano \
+        unzip \
+        dbus-x11 \
+        x11-xserver-utils
+
+    # ===============================
+    # INSTALAR AMBIENTE GRÁFICO
+    # ===============================
+    - name: Install XFCE Desktop
+      run: |
+        sudo apt install -y \
+        xfce4 \
+        xfce4-goodies \
+        xfce4-terminal
+
+    # ===============================
+    # CRIAR USUÁRIO
+    # ===============================
+    - name: Create user
+      run: |
+        sudo useradd -m cloud
+        echo "cloud:cloud" | sudo chpasswd
+        sudo usermod -aG sudo cloud
+
+    # ===============================
+    # CONFIGURAR XRDP
+    # ===============================
+    - name: Install xRDP
+      run: |
+        sudo apt install -y xrdp
+        sudo systemctl enable xrdp
+        sudo systemctl restart xrdp
+
+    # ===============================
+    # CONFIGURAR SESSÃO XFCE
+    # ===============================
+    - name: Configure XFCE session
+      run: |
+        echo "startxfce4" > ~/.xsession
+        chmod +x ~/.xsession
+
+    # ===============================
+    # INSTALAR VNC SERVER
+    # ===============================
+    - name: Install TightVNC
+      run: |
+        sudo apt install -y tightvncserver
+
+    # ===============================
+    # CONFIGURAR VNC
+    # ===============================
+    - name: Setup VNC
+      run: |
+        mkdir -p ~/.vnc
+        echo "cloud" | vncpasswd -f > ~/.vnc/passwd
+        chmod 600 ~/.vnc/passwd
+        echo "#!/bin/bash
+        unset SESSION_MANAGER
+        unset DBUS_SESSION_BUS_ADDRESS
+        exec startxfce4 &" > ~/.vnc/xstartup
+        chmod +x ~/.vnc/xstartup
+
+    # ===============================
+    # INICIAR VNC
+    # ===============================
+    - name: Start VNC Server
+      run: |
+        vncserver :1 -geometry 1280x720
+
+    # ===============================
+    # INSTALAR NOVNC
+    # ===============================
+    - name: Install noVNC
+      run: |
+        git clone https://github.com/novnc/noVNC.git
+        git clone https://github.com/novnc/websockify.git noVNC/utils/websockify
+
+    # ===============================
+    # RODAR NOVNC
+    # ===============================
+    - name: Start noVNC
+      run: |
+        nohup ./noVNC/utils/novnc_proxy \
+        --vnc localhost:5901 \
+        --listen 6080 &
+
+    # ===============================
+    # INSTALAR NAVEGADOR
+    # ===============================
+    - name: Install Firefox
+      run: |
+        sudo apt install -y firefox
+
+    # ===============================
+    # MANTER A VM VIVA
+    # ===============================
+    - name: Keep alive
+      run: |
+        echo "Cloud PC rodando..."
+        sleep 21600
