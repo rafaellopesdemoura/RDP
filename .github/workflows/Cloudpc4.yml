@@ -1,0 +1,36 @@
+name: Chrome Remote Desktop
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+
+    - name: Set up job
+      run: |
+        sudo apt update
+
+    - name: Install Desktop Environment
+      run: |
+        sudo apt install -y xfce4 xfce4-goodies
+
+    - name: Install Chrome Remote Desktop
+      run: |
+        wget https://dl.google.com/linux/direct/chrome-remote-desktop_current_amd64.deb
+        sudo apt install -y ./chrome-remote-desktop_current_amd64.deb
+
+    - name: Configure Desktop
+      run: |
+        echo "exec /usr/bin/xfce4-session" > ~/.chrome-remote-desktop-session
+        sudo systemctl disable lightdm.service
+
+    - name: Start Chrome Remote Desktop
+      run: |
+        echo "=================================================="
+        echo "AGORA FAÇA LOGIN NO CHROME REMOTE DESKTOP"
+        echo "https://remotedesktop.google.com/headless"
+        echo "COPIE O COMANDO E COLE AQUI NO LOG DO ACTION"
+        echo "=================================================="
+        sleep 21600
