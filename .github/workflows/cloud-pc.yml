@@ -1,4 +1,4 @@
-name: Cloud PC Desktop Full
+name: Cloud PC noVNC (Public)
 
 on:
   workflow_dispatch:
@@ -9,52 +9,44 @@ jobs:
     timeout-minutes: 360
 
     steps:
-    - name: Update system
+    - name: Update
       run: |
         sudo apt update
-        sudo apt upgrade -y
 
-    - name: Install desktop environment
+    - name: Install desktop and tools
       run: |
-        sudo apt install -y xfce4 xfce4-goodies dbus-x11 x11-xserver-utils
+        sudo apt install -y \
+          xfce4 xfce4-goodies \
+          firefox \
+          x11vnc xvfb \
+          novnc websockify \
+          wget curl
 
-    - name: Install VNC server
+    - name: Start desktop and VNC
       run: |
-        sudo apt install -y tightvncserver
+        Xvfb :0 -screen 0 1280x720x16 &
+        sleep 3
+        startxfce4 &
+        sleep 5
+        x11vnc -display :0 -nopw -forever -shared -rfbport 5900 &
 
-    - name: Setup VNC password
+    - name: Start noVNC
       run: |
-        mkdir -p ~/.vnc
-        echo -e "123456\n123456\nn" | vncserver
-        vncserver -kill :1
+        websockify --web=/usr/share/novnc 6080 localhost:5900 &
 
-    - name: Configure VNC startup
+    - name: Start Cloudflare Tunnel
       run: |
-        echo '#!/bin/sh
-        unset SESSION_MANAGER
-        unset DBUS_SESSION_BUS_ADDRESS
-        exec startxfce4 &' > ~/.vnc/xstartup
-        chmod +x ~/.vnc/xstartup
+        wget -q https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64
+        chmod +x cloudflared-linux-amd64
+        ./cloudflared-linux-amd64 tunnel --url http://localhost:6080 --no-autoupdate &
+        sleep 5
 
-    - name: Start VNC server
+    - name: Show public link
       run: |
-        vncserver :1 -geometry 1280x720 -depth 24
+        echo "======================================"
+        echo "COPIA O LINK CLOUDflare QUE APARECE ACIMA"
+        echo "É ELE QUE ABRE O CLOUD PC"
+        echo "======================================"
 
-    - name: Install Tailscale
-      run: |
-        curl -fsSL https://tailscale.com/install.sh | sh
-
-    - name: Start Tailscale
-      env:
-        TS_AUTHKEY: ${{ secrets.TS_AUTHKEY }}
-      run: |
-        sudo tailscale up --authkey=$TS_AUTHKEY --hostname=github-cloud-pc
-
-    - name: Show Tailscale IP
-      run: |
-        tailscale ip -4
-
-    - name: Keep Cloud PC alive
-      run: |
-        echo "Cloud PC is running..."
-        sleep 216
+    - name: Keep alive
+      run: sleep 6h
