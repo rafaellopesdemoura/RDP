@@ -1,0 +1,29 @@
+name: Cloud PC noVNC
+
+on:
+  workflow_dispatch:
+
+jobs:
+  cloudpc:
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+
+    steps:
+    - name: Update system
+      run: |
+        sudo apt update
+        sudo apt upgrade -y
+
+    - name: Install desktop, browser and tools
+      run: |
+        sudo apt install -y \
+          xfce4 xfce4-goodies \
+          firefox \
+          x11vnc xvfb \
+          novnc websockify \
+          wget unzip
+
+    - name: Setup noVNC
+      run: |
+        sudo mkdir -p /opt/novnc
+        sudo ln -s
