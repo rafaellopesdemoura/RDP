@@ -26,9 +26,9 @@ jobs:
 
     - name: Start Chrome Remote Desktop
       run: |
-        DISPLAY= /opt/google/chrome-remote-desktop/start-host \
-        --code="COLE_AQUI_O_CODIGO_DO_SITE" \
-        --redirect-url="https://remotedesktop.google.com/_/oauthredirect" \
-        --name=$(hostname) \
-        --pin=123456
+        DISPLAY=:0 /opt/google/chrome-remote-desktop/start-host \
+          --code="COLE_AQUI_O_CODIGO_DO_SITE" \
+          --redirect-url="https://remotedesktop.google.com/_/oauthredirect" \
+          --name=$(hostname) \
+          --pin=123456
         sleep 21600
