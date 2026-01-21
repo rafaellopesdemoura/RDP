@@ -1,0 +1,35 @@
+name: Cloud PC noVNC
+
+on:
+  workflow_dispatch:
+
+jobs:
+  cloudpc:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Install desktop, VNC and noVNC
+      run: |
+        sudo apt update
+        sudo apt install -y xfce4 xfce4-goodies tightvncserver novnc websockify dbus-x11 x11-xserver-utils
+
+    - name: Setup VNC
+      run: |
+        mkdir -p ~/.vnc
+        echo '#!/bin/sh
+        unset SESSION_MANAGER
+        unset DBUS_SESSION_BUS_ADDRESS
+        exec startxfce4 &' > ~/.vnc/xstartup
+        chmod +x ~/.vnc/xstartup
+
+    - name: Start VNC
+      run: |
+        vncserver -kill :1 || true
+        vncserver -localhost no :1
+
+    - name: Start noVNC
+      run: |
+        websockify --web=/usr/share/novnc/ 6080 localhost:5901 &
+
+    - name: Keep alive
+      run: |
+        sleep 21600
