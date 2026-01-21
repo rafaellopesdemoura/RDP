@@ -27,10 +27,10 @@ jobs:
         sudo systemctl disable lightdm.service
 
     - name: Start Chrome Remote Desktop
-      run: |
-        echo "=================================================="
-        echo "AGORA FAÇA LOGIN NO CHROME REMOTE DESKTOP"
-        echo "https://remotedesktop.google.com/headless"
-        echo "COPIE O COMANDO E COLE AQUI NO LOG DO ACTION"
-        echo "=================================================="
-        sleep 21600
+      run: | 
+       DISPLAY= /opt/google/chrome-remote-desktop/start-host \
+--code="4/0ASc3gC2g16sH8RMCW7Zy5DubWAUBLy7frBBqTrrzJmq1FfIPXie1IL608fz9qdlKgXTVgQ" \
+--redirect-url="https://remotedesktop.google.com/_/oauthredirect" \
+--name=$(hostname) \
+--pin=123456
+  
